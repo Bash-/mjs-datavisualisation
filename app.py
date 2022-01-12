@@ -15,9 +15,14 @@ from make_plots import (
     bokeh_plot,
 )
 
+from mjs_plots import mjs_plot
 
 # can only set this once, first thing to set
 st.set_page_config(layout="wide")
+
+with st.container():
+    st.title("Meet Je Stad Data Visualisatie")
+    st.header("Op deze pagina kan je experimenteren met de data van Meet Je Stad meetkastjes")
 
 plot_types = (
     "Scatter",
@@ -35,8 +40,11 @@ libs = (
     "Bokeh",
 )
 
+sensor_ids = ['745','725','742','464','740','744','743','746','718','728','733','739','747','724','719','768','769','770','772','773','775','774','716','727']
+
 chart_type = st.selectbox("Grafiek type", plot_types)
-sensor_id = st.text_input("Meetkastje id", value="742")
+# sensor_id = st.text_input("Meetkastje id", value="742")
+sensors_input = st.multiselect("Meetkastje ids", options=sensor_ids, default="742")
 
 import pandas as pd
 import requests
@@ -45,14 +53,13 @@ begin_date = '2020-01-01,00:00'
 end_date = '2020-12-01,00:00'
 # sensor_ids_utrecht = ['745','725','742','464','740','744','743','746','718','728','733','739','747','724','719','768','769','770','772','773','775','774','716','727']
 # sensors = ','.join(sensor_ids_utrecht)
-sensors = '742'
+sensors = ','.join(sensors_input)
 
 link = f'https://meetjestad.net/data/?type=sensors&ids={sensors}&begin={begin_date}&end={end_date}&format=json'
 
 def load_data():
     r = requests.get(link)
     df = pd.DataFrame(r.json())
-    print(df)
 
     df = df[['id', 'timestamp', 'temperature', 'humidity']]
     df['timestamp'] = pd.to_datetime(df['timestamp'])
@@ -61,16 +68,13 @@ def load_data():
     return df
 
 def prepare_chart_data(df):
-    df.columns = [f'{i}-{j}' for i, j in df.columns]
+    df.columns = [f'{i}_{j}' for i, j in df.columns]
     df = df.reset_index()
     df['ts'] = df['ts'].astype(str)
-    print(df)
-    df.to_json('./chartdata.json', orient='records')
-    
+    return df    
 
-mjsdf = load_data()
+mjsdf = prepare_chart_data(load_data())
 copymjsdf = mjsdf.copy()
-copymjsdf
 
 # get data
 # @st.cache(allow_output_mutation=True) # maybe source of resource limit issue
@@ -81,22 +85,6 @@ def load_penguin_data():
 pens_df = load_penguin_data()
 df = pens_df.copy()
 df.index = pd.date_range(start="1/1/18", periods=len(df), freq="D")
-
-
-with st.container():
-    st.title("Meet Je Stad Data Visualisatie")
-    st.header("Op deze pagina kan je experimenteren met de data van Meet Je Stad meetkastjes")
-
-
-with st.container():
-    st.subheader(f"Grafiek type geselecteerd:  {chart_type}")
-    st.subheader(f"Meetkastje:  {sensor_id}")
-    st.write("")
-
-two_cols = st.checkbox("2 columns?", True)
-if two_cols:
-    col1, col2 = st.columns(2)
-
 
 # create plots
 def show_plot(kind: str):
@@ -119,18 +107,16 @@ def show_plot(kind: str):
     elif kind == "Bokeh":
         plot = bokeh_plot(chart_type, df)
         st.bokeh_chart(plot, use_container_width=True)
+    elif kind == "MJS":
+        plot = mjs_plot(chart_type, copymjsdf)
+        st.plotly_chart(plot, use_container_width=True)
 
 
 # output plots
 with st.container():
-    show_plot(kind="Plotly Express")
+    show_plot(kind="MJS")
 
-# display data
-with st.container():
-    show_data = st.checkbox("See the raw data?")
-
-    if show_data:
-        df
-
-    # notes
-    # st.subheader("Notes")
+# notes
+# st.subheader("Notes")
+st.subheader("Ruwe data")
+copymjsdf
