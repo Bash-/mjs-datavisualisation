@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from mjs_plots import mjs_plot
+import datetime
 
 # can only set this once, first thing to set
 st.set_page_config(layout="wide")
@@ -12,10 +13,10 @@ with st.container():
     )
 
 plot_types = (
+    "Line",
     "Scatter",
     "Histogram",
     "Bar",
-    "Line",
     "3D Scatter",
 )  # maybe add 'Boxplot' after fixes
 libs = (
@@ -57,17 +58,22 @@ sensor_ids = [
 chart_type = st.selectbox("Grafiek type", plot_types)
 # sensor_id = st.text_input("Meetkastje id", value="742")
 sensors_input = st.multiselect("Meetkastje ids", options=sensor_ids, default="742")
+date_begin_input = st.date_input("Startdatum", value=datetime.datetime(2020, 1, 1))
+date_end_input = st.date_input("Einddatum", value=datetime.datetime(2021, 12, 1))
+
+date_begin = date_begin_input.strftime("%Y-%m-%d, %H:%M")
+date_end = date_end_input.strftime("%Y-%m-%d, %H:%M")
 
 import pandas as pd
 import requests
 
-begin_date = "2020-01-01,00:00"
-end_date = "2020-12-01,00:00"
+# begin_date = "2020-01-01,00:00"
+# end_date = "2020-12-01,00:00"
 # sensor_ids_utrecht = ['745','725','742','464','740','744','743','746','718','728','733','739','747','724','719','768','769','770','772','773','775','774','716','727']
 # sensors = ','.join(sensor_ids_utrecht)
 sensors = ",".join(sensors_input)
 
-link = f"https://meetjestad.net/data/?type=sensors&ids={sensors}&begin={begin_date}&end={end_date}&format=json"
+link = f"https://meetjestad.net/data/?type=sensors&ids={sensors}&begin={date_begin}&end={date_end}&format=json"
 
 
 def load_data():

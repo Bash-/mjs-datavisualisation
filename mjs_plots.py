@@ -47,13 +47,16 @@ def mjs_plot(chart_type: str, df):
         y_axis = st.selectbox("y-as", data_fields, index=1)
         fig = px.box(data_frame=df, x=x_axis, y=y_axis)
     elif chart_type == "Line":
-        x_axis = st.selectbox("x-as", data_fields)
-        y_axis = st.selectbox("y-as", data_fields, index=1)
+        x_axis = st.selectbox("x-as", data_fields, index=1)
+        y_axis = st.selectbox("y-as", data_fields, index=2)
+        color = st.selectbox("Kleur", data_fields, index=0)
         fig = px.line(
             data_frame=df,
             x=x_axis,
             y=y_axis,
+            color=color,
             title="Line chart",
+
         )
     elif chart_type == "3D Scatter":
         x_axis = st.selectbox("x-as", data_fields)
