@@ -35,28 +35,62 @@ libs = (
     "Bokeh",
 )
 
+chart_type = st.selectbox("Grafiek type", plot_types)
+sensor_id = st.text_input("Meetkastje id", value="742")
+
+import pandas as pd
+import requests
+
+begin_date = '2020-01-01,00:00'
+end_date = '2020-12-01,00:00'
+# sensor_ids_utrecht = ['745','725','742','464','740','744','743','746','718','728','733','739','747','724','719','768','769','770','772','773','775','774','716','727']
+# sensors = ','.join(sensor_ids_utrecht)
+sensors = '742'
+
+link = f'https://meetjestad.net/data/?type=sensors&ids={sensors}&begin={begin_date}&end={end_date}&format=json'
+
+def load_data():
+    r = requests.get(link)
+    df = pd.DataFrame(r.json())
+    print(df)
+
+    df = df[['id', 'timestamp', 'temperature', 'humidity']]
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df.columns = ['id', 'ts', 'tmp', 'hum']
+    df = df.groupby(['id', pd.Grouper(key='ts', freq='D')]).agg(['min', 'max', 'mean']).round(2)
+    return df
+
+def prepare_chart_data(df):
+    df.columns = [f'{i}-{j}' for i, j in df.columns]
+    df = df.reset_index()
+    df['ts'] = df['ts'].astype(str)
+    print(df)
+    df.to_json('./chartdata.json', orient='records')
+    
+
+mjsdf = load_data()
+copymjsdf = mjsdf.copy()
+copymjsdf
+
 # get data
 # @st.cache(allow_output_mutation=True) # maybe source of resource limit issue
-def load_penguins():
+def load_penguin_data():
     return sns.load_dataset("penguins")
 
 
-pens_df = load_penguins()
+pens_df = load_penguin_data()
 df = pens_df.copy()
 df.index = pd.date_range(start="1/1/18", periods=len(df), freq="D")
 
 
 with st.container():
-    st.title("Python Data Visualization Tour")
-    st.header("Popular plots in popular plotting libraries")
-    st.write("""See the code and plots for five libraries at once.""")
+    st.title("Meet Je Stad Data Visualisatie")
+    st.header("Op deze pagina kan je experimenteren met de data van Meet Je Stad meetkastjes")
 
-
-# User choose type
-chart_type = st.selectbox("Choose your chart type", plot_types)
 
 with st.container():
-    st.subheader(f"Showing:  {chart_type}")
+    st.subheader(f"Grafiek type geselecteerd:  {chart_type}")
+    st.subheader(f"Meetkastje:  {sensor_id}")
     st.write("")
 
 two_cols = st.checkbox("2 columns?", True)
@@ -88,23 +122,8 @@ def show_plot(kind: str):
 
 
 # output plots
-if two_cols:
-    with col1:
-        show_plot(kind="Matplotlib")
-    with col2:
-        show_plot(kind="Seaborn")
-    with col1:
-        show_plot(kind="Plotly Express")
-    with col2:
-        show_plot(kind="Altair")
-    with col1:
-        show_plot(kind="Pandas Matplotlib")
-    with col2:
-        show_plot(kind="Bokeh")
-else:
-    with st.container():
-        for lib in libs:
-            show_plot(kind=lib)
+with st.container():
+    show_plot(kind="Plotly Express")
 
 # display data
 with st.container():
@@ -114,23 +133,4 @@ with st.container():
         df
 
     # notes
-    st.subheader("Notes")
-    st.write(
-        """
-        - This app uses [Streamlit](https://streamlit.io/) and the [Palmer Penguins](https://allisonhorst.github.io/palmerpenguins/) dataset.      
-        - To see the full code check out the [GitHub repo](https://github.com/discdiver/data-viz-streamlit).
-        - Plots are interactive where that's the default or easy to add.
-        - Plots that use MatPlotlib under the hood have fig and ax objects defined before the code shown.
-        - Lineplots should have sequence data, so I created a date index with a sequence of dates for them. 
-        - Where an axis label shows by default, I left it at is. Generally where it was missing, I added it.
-        - There are multiple ways to make some of these plots.
-        - You can choose to see two columns, but with a narrow screen this will switch to one column automatically.
-        - Python has many data visualization libraries. This gallery is not exhaustive. If you would like to add code for another library, please submit a [pull request](https://github.com/discdiver/data-viz-streamlit).
-        - For a larger tour of more plots, check out the [Python Graph Gallery](https://www.python-graph-gallery.com/density-plot/) and [Python Plotting for Exploratory Data Analysis](https://pythonplot.com/).
-        - The interactive Plotly Express 3D Scatterplot is cool to play with. Check it out! 😎
-        
-        Made by [Jeff Hale](https://www.linkedin.com/in/-jeffhale/). 
-        
-        Subscribe to my [Data Awesome newsletter](https://dataawesome.com) for the latest tools, tips, and resources.
-        """
-    )
+    # st.subheader("Notes")
