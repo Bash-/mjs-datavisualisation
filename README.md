@@ -8,7 +8,12 @@ gcloud services enable run.googleapis.com containerregistry.googleapis.com
 gcloud auth configure-docker
 docker tag mjs-streamlit:latest gcr.io/mjs-datavisualisation/mjs-streamlit:latest
 docker push gcr.io/mjs-datavisualisation/mjs-streamlit:latest
-gcloud run deploy mjs-datavisualisation  --image gcr.io/mjs-datavisualisation/mjs-streamlit:latest --platform managed
+gcloud run deploy mjs-datavisualisation  \
+--image gcr.io/mjs-datavisualisation/mjs-streamlit:latest \
+--platform managed  \
+--allow-unauthenticated \ 
+--region europe-west4 \
+--memory 2Gi --timeout=900
 ```
 
 # Commands for image update
@@ -16,5 +21,10 @@ gcloud run deploy mjs-datavisualisation  --image gcr.io/mjs-datavisualisation/mj
 docker build -t mjs-streamlit .
 docker tag mjs-streamlit:latest gcr.io/mjs-datavisualisation/mjs-streamlit:latest
 docker push gcr.io/mjs-datavisualisation/mjs-streamlit:latest
-gcloud run deploy mjs-datavisualisation  --image gcr.io/mjs-datavisualisation/mjs-streamlit:latest --platform managed
+gcloud run deploy mjs-datavisualisation  \
+--image gcr.io/mjs-datavisualisation/mjs-streamlit:latest \
+--platform managed  \
+--allow-unauthenticated \ 
+--region europe-west4 \
+--memory 2Gi --timeout=900
 ```
