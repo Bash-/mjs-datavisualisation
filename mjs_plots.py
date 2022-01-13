@@ -76,10 +76,11 @@ def mjs_plot(chart_type: str, df):
     parameters.register_string_parameter(key="y_axis", default_value="tmp_mean")
     parameters.register_string_parameter(key="z_axis", default_value="hum_mean")
     parameters.register_string_parameter(key="color", default_value="id")
-    parameters.register_string_parameter(key="plot_title", default_value="")
+    parameters.register_string_parameter(key="plot_title", default_value="Gemiddelde temperatuur van meetkastje 725 in 2020")
 
     plot_title = st.text_input(
         label="Titel van jouw grafiek",
+        value=parameters.plot_title.value,
         key=parameters.plot_title.key,
         on_change=functools.partial(
             parameters.update_parameter_from_session_state,
