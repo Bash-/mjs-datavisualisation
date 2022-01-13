@@ -1,5 +1,8 @@
 import plotly.express as px
 import streamlit as st
+import functools
+
+import streamlit_parameters
 
 data_fields = [
     "id",
@@ -12,14 +15,72 @@ data_fields = [
     "hum_mean",
 ]
 
+def show_x_axis(parameters):
+    return st.selectbox(
+            label="x-as",
+            options=data_fields,
+            index=data_fields.index(parameters.x_axis.value),
+            key=parameters.x_axis.key,
+            on_change=functools.partial(
+                parameters.update_parameter_from_session_state,
+                key=parameters.x_axis.key,
+            ),
+        )
+
+
+def show_y_axis(parameters):
+    return st.selectbox(
+        label="y-as",
+        options=data_fields,
+        index=data_fields.index(parameters.y_axis.value),
+        key=parameters.y_axis.key,
+        on_change=functools.partial(
+            parameters.update_parameter_from_session_state,
+            key=parameters.y_axis.key,
+        ),
+    )
+
+
+def show_z_axis(parameters):
+    return st.selectbox(
+        label="z-as",
+        options=data_fields,
+        index=data_fields.index(parameters.z_axis.value),
+        key=parameters.z_axis.key,
+        on_change=functools.partial(
+            parameters.update_parameter_from_session_state,
+            key=parameters.z_axis.key,
+        ),
+    )
+
+
+
+def show_color(parameters):
+    return st.selectbox(
+        label="Kleur",
+        options=data_fields,
+        index=data_fields.index(parameters.color.value),
+        key=parameters.color.key,
+        on_change=functools.partial(
+            parameters.update_parameter_from_session_state,
+            key=parameters.color.key,
+        ),
+    )
+
 
 def mjs_plot(chart_type: str, df):
     """return plotly plots"""
 
+    parameters = streamlit_parameters.parameters.Parameters()
+    parameters.register_string_parameter(key="x_axis", default_value="ts")
+    parameters.register_string_parameter(key="y_axis", default_value="tmp_mean")
+    parameters.register_string_parameter(key="z-axis", default_value="hum_mean")
+    parameters.register_string_parameter(key="color", default_value="id")
+
     if chart_type == "Scatter":
-        x_axis = st.selectbox("x-as", data_fields)
-        y_axis = st.selectbox("y-as", data_fields, index=1)
-        color = st.selectbox("Kleur", data_fields, index=2)
+        x_axis = show_x_axis(parameters)
+        y_axis = show_y_axis(parameters)
+        color = show_color(parameters)
 
         fig = px.scatter(
             data_frame=df,
@@ -29,7 +90,7 @@ def mjs_plot(chart_type: str, df):
             title="Scatter plot",
         )
     elif chart_type == "Histogram":
-        x_axis = st.selectbox("x-as", data_fields)
+        x_axis = show_x_axis(parameters)
 
         fig = px.histogram(
             data_frame=df,
@@ -37,32 +98,32 @@ def mjs_plot(chart_type: str, df):
             title="Histogram",
         )
     elif chart_type == "Bar":
-        x_axis = st.selectbox("x-as", data_fields)
-        y_axis = st.selectbox("y-as", data_fields, index=1)
+        x_axis = show_x_axis(parameters)
+        y_axis = show_y_axis(parameters)
 
         fig = px.histogram(data_frame=df, x=x_axis, y=y_axis, title="Bar chart")
         # by default shows stacked bar chart (sum) with individual hover values
     elif chart_type == "Boxplot":
-        x_axis = st.selectbox("x-as", data_fields)
-        y_axis = st.selectbox("y-as", data_fields, index=1)
+        x_axis = show_x_axis(parameters)
+        y_axis = show_y_axis(parameters)
+
         fig = px.box(data_frame=df, x=x_axis, y=y_axis)
     elif chart_type == "Line":
-        x_axis = st.selectbox("x-as", data_fields, index=1)
-        y_axis = st.selectbox("y-as", data_fields, index=2)
-        color = st.selectbox("Kleur", data_fields, index=0)
+        x_axis = show_x_axis(parameters)
+        y_axis = show_y_axis(parameters)
+        color = show_color(parameters)
         fig = px.line(
             data_frame=df,
             x=x_axis,
             y=y_axis,
             color=color,
             title="Line chart",
-
         )
     elif chart_type == "3D Scatter":
-        x_axis = st.selectbox("x-as", data_fields)
-        y_axis = st.selectbox("y-as", data_fields, index=1)
-        z_axis = st.selectbox("y-as", data_fields, index=2)
-        color = st.selectbox("kleur", data_fields, index=3)
+        x_axis = show_x_axis(parameters)
+        y_axis = show_y_axis(parameters)
+        z_axis = show_z_axis(parameters)
+        color = show_color(parameters)
 
         fig = px.scatter_3d(
             data_frame=df,

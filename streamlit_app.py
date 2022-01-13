@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 from mjs_plots import mjs_plot
 import datetime
+import functools
+import streamlit_parameters
+
+import requests
 
 # can only set this once, first thing to set
 st.set_page_config(layout="wide")
@@ -55,17 +59,35 @@ sensor_ids = [
     "727",
 ]
 
+parameters = streamlit_parameters.parameters.Parameters()
+
+parameters.register_date_parameter(key="start_date", default_value=datetime.datetime(2020, 1, 1))
+parameters.register_date_parameter(key="end_date", default_value=datetime.datetime(2021, 12, 1))
+
 chart_type = st.selectbox("Grafiek type", plot_types)
 # sensor_id = st.text_input("Meetkastje id", value="742")
 sensors_input = st.multiselect("Meetkastje ids", options=sensor_ids, default="742")
-date_begin_input = st.date_input("Startdatum", value=datetime.datetime(2020, 1, 1))
-date_end_input = st.date_input("Einddatum", value=datetime.datetime(2021, 12, 1))
+date_begin_input = st.date_input(
+    "Startdatum",
+    value=parameters.start_date.value,
+    key=parameters.end_date.key,
+    on_change=functools.partial(
+        parameters.update_parameter_from_session_state, key=parameters.end_date.key
+    ),
+)
+date_end_input = st.date_input(
+    "Einddatum",
+    value=parameters.end_date.value,
+    key=parameters.end_date.key,
+    on_change=functools.partial(
+        parameters.update_parameter_from_session_state, key=parameters.end_date.key
+    ),
+)
 
 date_begin = date_begin_input.strftime("%Y-%m-%d, %H:%M")
 date_end = date_end_input.strftime("%Y-%m-%d, %H:%M")
 
-import pandas as pd
-import requests
+parameters.set_url_fields()
 
 # begin_date = "2020-01-01,00:00"
 # end_date = "2020-12-01,00:00"
