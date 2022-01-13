@@ -61,12 +61,39 @@ sensor_ids = [
 
 parameters = streamlit_parameters.parameters.Parameters()
 
-parameters.register_date_parameter(key="start_date", default_value=datetime.datetime(2020, 1, 1))
-parameters.register_date_parameter(key="end_date", default_value=datetime.datetime(2021, 12, 1))
+parameters.register_string_parameter(key="plot_type", default_value="Line")
+parameters.register_string_list_parameter(key="sensor_ids", default_value="725")
 
-chart_type = st.selectbox("Grafiek type", plot_types)
+parameters.register_date_parameter(
+    key="start_date", default_value=datetime.datetime(2020, 1, 1)
+)
+parameters.register_date_parameter(
+    key="end_date", default_value=datetime.datetime(2021, 12, 1)
+)
+
+chart_type = st.selectbox(
+    label="Grafiek type",
+    options=plot_types,
+    index=plot_types.index(parameters.plot_type.value),
+    key=parameters.plot_type.key,
+    on_change=functools.partial(
+        parameters.update_parameter_from_session_state,
+        key=parameters.plot_type.key,
+    ),
+)
+
+
 # sensor_id = st.text_input("Meetkastje id", value="742")
-sensors_input = st.multiselect("Meetkastje ids", options=sensor_ids, default="742")
+sensors_input = st.multiselect(
+    label="Meetkastje ids",
+    options=sensor_ids,
+    default=parameters.sensor_ids.default,
+    key=parameters.sensor_ids.key,
+    on_change=functools.partial(
+        parameters.update_parameter_from_session_state, key=parameters.sensor_ids.key
+    ),
+)
+
 date_begin_input = st.date_input(
     "Startdatum",
     value=parameters.start_date.value,

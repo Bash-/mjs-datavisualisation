@@ -74,7 +74,7 @@ def mjs_plot(chart_type: str, df):
     parameters = streamlit_parameters.parameters.Parameters()
     parameters.register_string_parameter(key="x_axis", default_value="ts")
     parameters.register_string_parameter(key="y_axis", default_value="tmp_mean")
-    parameters.register_string_parameter(key="z-axis", default_value="hum_mean")
+    parameters.register_string_parameter(key="z_axis", default_value="hum_mean")
     parameters.register_string_parameter(key="color", default_value="id")
 
     if chart_type == "Scatter":
