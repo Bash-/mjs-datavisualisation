@@ -76,6 +76,16 @@ def mjs_plot(chart_type: str, df):
     parameters.register_string_parameter(key="y_axis", default_value="tmp_mean")
     parameters.register_string_parameter(key="z_axis", default_value="hum_mean")
     parameters.register_string_parameter(key="color", default_value="id")
+    parameters.register_string_parameter(key="plot_title", default_value="")
+
+    plot_title = st.text_input(
+        label="Titel van jouw grafiek",
+        key=parameters.plot_title.key,
+        on_change=functools.partial(
+            parameters.update_parameter_from_session_state,
+            key=parameters.plot_title.key,
+        )
+    )
 
     if chart_type == "Scatter":
         x_axis = show_x_axis(parameters)
@@ -87,7 +97,7 @@ def mjs_plot(chart_type: str, df):
             x=x_axis,
             y=y_axis,
             color=color,
-            title="Scatter plot",
+            title=plot_title,
         )
     elif chart_type == "Histogram":
         x_axis = show_x_axis(parameters)
@@ -95,19 +105,19 @@ def mjs_plot(chart_type: str, df):
         fig = px.histogram(
             data_frame=df,
             x=x_axis,
-            title="Histogram",
+            title=plot_title,
         )
     elif chart_type == "Bar":
         x_axis = show_x_axis(parameters)
         y_axis = show_y_axis(parameters)
 
-        fig = px.histogram(data_frame=df, x=x_axis, y=y_axis, title="Bar chart")
+        fig = px.histogram(data_frame=df, x=x_axis, y=y_axis, title=plot_title)
         # by default shows stacked bar chart (sum) with individual hover values
     elif chart_type == "Boxplot":
         x_axis = show_x_axis(parameters)
         y_axis = show_y_axis(parameters)
 
-        fig = px.box(data_frame=df, x=x_axis, y=y_axis)
+        fig = px.box(data_frame=df, x=x_axis, y=y_axis, title=plot_title)
     elif chart_type == "Line":
         x_axis = show_x_axis(parameters)
         y_axis = show_y_axis(parameters)
@@ -117,7 +127,7 @@ def mjs_plot(chart_type: str, df):
             x=x_axis,
             y=y_axis,
             color=color,
-            title="Line chart",
+            title=plot_title,
         )
     elif chart_type == "3D Scatter":
         x_axis = show_x_axis(parameters)
@@ -131,7 +141,7 @@ def mjs_plot(chart_type: str, df):
             y=y_axis,
             z=z_axis,
             color=color,
-            title="Interactive 3D Scatterplot!",
+            title=plot_title,
         )
 
     return fig
