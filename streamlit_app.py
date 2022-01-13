@@ -114,8 +114,6 @@ date_end_input = st.date_input(
 date_begin = date_begin_input.strftime("%Y-%m-%d, %H:%M")
 date_end = date_end_input.strftime("%Y-%m-%d, %H:%M")
 
-parameters.set_url_fields()
-
 # begin_date = "2020-01-01,00:00"
 # end_date = "2020-12-01,00:00"
 # sensor_ids_utrecht = ['745','725','742','464','740','744','743','746','718','728','733','739','747','724','719','768','769','770','772','773','775','774','716','727']
@@ -153,6 +151,7 @@ copymjsdf = mjsdf.copy()
 # output plots
 with st.container():
     plot = mjs_plot(chart_type, copymjsdf)
+    parameters.set_url_fields()
     st.plotly_chart(plot, use_container_width=True)
 
 # notes
