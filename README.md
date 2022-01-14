@@ -24,7 +24,7 @@ docker push gcr.io/mjs-datavisualisation/mjs-streamlit:latest
 gcloud run deploy mjs-datavisualisation  \
 --image gcr.io/mjs-datavisualisation/mjs-streamlit:latest \
 --platform managed  \
---allow-unauthenticated \ 
 --region europe-west4 \
---memory 2Gi --timeout=900
+--memory 2Gi \
+--timeout=900
 ```
