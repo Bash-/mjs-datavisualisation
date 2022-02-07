@@ -6,13 +6,19 @@ import streamlit_parameters
 
 data_fields = [
     "id",
-    "ts",
-    "tmp_min",
-    "tmp_max",
-    "tmp_mean",
-    "hum_min",
-    "hum_max",
-    "hum_mean",
+    "timestamp",
+    "temperature_min",
+    "temperature_max",
+    "temperature_mean",
+    "humidity_min",
+    "humidity_max",
+    "humidity_mean",
+    "pm2.5_min",
+    "pm2.5_max",
+    "pm2.5_mean",
+    "pm10_min",
+    "pm10_max",
+    "pm10_mean"
 ]
 
 def show_x_axis(parameters):
@@ -72,12 +78,12 @@ def mjs_plot(chart_type: str, df):
     """return plotly plots"""
 
     parameters = streamlit_parameters.parameters.Parameters()
-    parameters.register_string_parameter(key="x_axis", default_value="ts")
-    parameters.register_string_parameter(key="y_axis", default_value="tmp_mean")
-    parameters.register_string_parameter(key="z_axis", default_value="hum_mean")
+    parameters.register_string_parameter(key="x_axis", default_value="timestamp")
+    parameters.register_string_parameter(key="y_axis", default_value="temperature_mean")
+    parameters.register_string_parameter(key="z_axis", default_value="humidity_mean")
     parameters.register_string_parameter(key="color", default_value="id")
     parameters.register_string_parameter(key="plot_title", default_value="Gemiddelde temperatuur van meetkastje 725 in 2020")
-
+# 782 68 2008 2028
     plot_title = st.text_input(
         label="Titel van jouw grafiek",
         value=parameters.plot_title.value,
