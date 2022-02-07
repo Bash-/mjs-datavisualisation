@@ -1,6 +1,7 @@
 # Commands executed for GCP Cloud Run deployment:
 
 ```
+gcloud auth login
 gcloud init
 gcloud config set compute/region europe-west4
 gcloud config set compute/zone europe-west4
@@ -18,6 +19,8 @@ gcloud run deploy mjs-datavisualisation  \
 
 # Commands for image update
 ```
+gcloud auth login
+gcloud config set project mjs-datavisualisation
 docker build -t mjs-streamlit .
 docker tag mjs-streamlit:latest gcr.io/mjs-datavisualisation/mjs-streamlit:latest
 docker push gcr.io/mjs-datavisualisation/mjs-streamlit:latest
