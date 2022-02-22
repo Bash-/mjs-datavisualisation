@@ -188,5 +188,3 @@ with st.container():
 # st.subheader("Notes")
 st.subheader("Ruwe data")
 copymjsdf
-
-load_data.locationdf
