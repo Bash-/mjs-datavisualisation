@@ -4,6 +4,8 @@ from mjs_plots import mjs_plot
 import datetime
 import functools
 import streamlit_parameters
+import pydeck as pdk
+from pydeck.types import String
 
 import requests
 
@@ -104,7 +106,14 @@ def load_data():
     r = requests.get(link)
     df = pd.DataFrame(r.json())
 
-    df = df[df.columns.intersection(set(["id", "timestamp", "temperature", "humidity", "pm2.5", "pm10"]))]
+    locationdf = df[df.columns.intersection(set(["id", "longitude", "latitude"]))]
+    load_data.locationdf = locationdf.groupby(["id"], as_index=False).first()
+
+    df = df[
+        df.columns.intersection(
+            set(["id", "timestamp", "temperature", "humidity", "pm2.5", "pm10"])
+        )
+    ]
     df["timestamp"] = pd.to_datetime(df["timestamp"])
     # df.columns = ["id", "ts", "tmp", "hum", "pm2.5", "pm10"]
     df = (
@@ -131,7 +140,53 @@ with st.container():
     parameters.set_url_fields()
     st.plotly_chart(plot, use_container_width=True)
 
+TEXT_LAYER_DATA = "https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/bart-stations.json"  # noqa
+extradf = pd.read_json(TEXT_LAYER_DATA)
+
+load_data.locationdf["id"] = load_data.locationdf.id.apply(str)
+
+computed_view = pdk.data_utils.compute_view(load_data.locationdf[["longitude", "latitude"]])
+
+if (computed_view.zoom > 12):
+    computed_view.zoom = 12
+
+with st.container():
+    st.pydeck_chart(
+        pdk.Deck(
+            map_style="mapbox://styles/mapbox/satellite-streets-v11",
+            initial_view_state=computed_view,
+            layers=[
+                pdk.Layer(
+                    "ScatterplotLayer",
+                    data=load_data.locationdf,
+                    get_position="[longitude, latitude]",
+                    get_color="[200, 30, 0, 160]",
+                    get_radius=200,
+                    pickable=True,
+                    extruded=True,
+                ),
+                pdk.Layer(
+                    "TextLayer",
+                    load_data.locationdf,
+                    pickable=True,
+                    get_position="[longitude, latitude]",
+                    get_text="id",
+                    get_size=14,
+                    get_color=[0, 0, 0],
+                    get_angle=0,
+                    # Note that string constants in pydeck are explicitly passed as strings
+                    # This distinguishes them from columns in a data set
+                    get_text_anchor=String("middle"),
+                    get_alignment_baseline=String("center"),
+                ),
+            ],
+            tooltip={"html": "<b>Meetkastje: {id}</b>", "style": {"color": "white"}},
+        )
+    )
+
 # notes
 # st.subheader("Notes")
 st.subheader("Ruwe data")
 copymjsdf
+
+load_data.locationdf
