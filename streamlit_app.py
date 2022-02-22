@@ -156,7 +156,7 @@ def add_knmi_data(df):
     knmi_df = pd.DataFrame(r.json())
     knmi_df.loc[knmi_df.station_code == 260, 'id'] = "KNMI De Bilt"
     knmi_df["timestamp"] = knmi_df["date"].astype(str)
-    knmi_df[["TG","TN", "TX", "UG", "UX", "UN"]] = knmi_df[["TG","TN", "TX", "UG", "UX", "UN"]].apply(lambda x: x/10)
+    knmi_df[["TG","TN", "TX"]] = knmi_df[["TG","TN", "TX"]].apply(lambda x: x/10)
     knmi_df = knmi_df.rename(columns={"TG": "temperature_mean", "TN": "temperature_min", "TX": "temperature_max", "UG": "humidity_mean", "UX": "humidity_max", "UN": "humidity_min"})
     knmi_df = knmi_df[
         knmi_df.columns.intersection(
