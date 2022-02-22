@@ -42,6 +42,7 @@ parameters = streamlit_parameters.parameters.Parameters()
 
 parameters.register_string_parameter(key="plot_type", default_value="Line")
 parameters.register_string_list_parameter(key="sensor_ids", default_value="725")
+parameters.register_string_list_parameter(key="knmi_ids", default_value=False)
 
 parameters.register_date_parameter(
     key="start_date", default_value=datetime.datetime(2020, 1, 1)
@@ -70,6 +71,15 @@ sensors_input = st.multiselect(
     key=parameters.sensor_ids.key,
     on_change=functools.partial(
         parameters.update_parameter_from_session_state, key=parameters.sensor_ids.key
+    ),
+)
+
+knmi_input = st.checkbox(
+    label="Data KNMI De Bilt toevoegen?",
+    value=parameters.knmi_ids.default,
+    key=parameters.knmi_ids.key,
+    on_change=functools.partial(
+        parameters.update_parameter_from_session_state, key=parameters.knmi_ids.key
     ),
 )
 
@@ -106,8 +116,13 @@ def load_data():
     r = requests.get(link)
     df = pd.DataFrame(r.json())
 
-    locationdf = df[df.columns.intersection(set(["id", "longitude", "latitude"]))]
+    location_cols = ["id", "longitude", "latitude"]
+    locationdf = df[df.columns.intersection(set(location_cols))]
     load_data.locationdf = locationdf.groupby(["id"], as_index=False).first()
+
+    if (knmi_input): 
+        knmi_stations = pd.DataFrame([["KNMI De Bilt", 5.180, 52.100]], columns=location_cols)
+        load_data.locationdf = pd.concat([load_data.locationdf, knmi_stations])
 
     df = df[
         df.columns.intersection(
@@ -128,10 +143,32 @@ def prepare_chart_data(df):
     df.columns = [f"{i}_{j}" for i, j in df.columns]
     df = df.reset_index()
     df["timestamp"] = df["timestamp"].astype(str)
+    df["id"] = df["id"].astype(str)
     return df
 
+def add_knmi_data(df):
+    # More info about the KNMI data here: https://www.knmi.nl/kennis-en-datacentrum/achtergrond/data-ophalen-vanuit-een-script
+    # And here https://www.daggegevens.knmi.nl/klimatologie/daggegevens
+    date_begin = date_begin_input.strftime("%Y%m%d")
+    date_end = date_end_input.strftime("%Y%m%d")
+    knmi_link = "https://www.daggegevens.knmi.nl/klimatologie/daggegevens"
+    r = requests.post(knmi_link, data={'start': date_begin, 'end': date_end, 'vars': 'TEMP:MSTR', 'stns': '260', 'fmt': 'json'})
+    knmi_df = pd.DataFrame(r.json())
+    knmi_df.loc[knmi_df.station_code == 260, 'id'] = "KNMI De Bilt"
+    knmi_df["timestamp"] = knmi_df["date"].astype(str)
+    knmi_df[["TG","TN", "TX", "UG", "UX", "UN"]] = knmi_df[["TG","TN", "TX", "UG", "UX", "UN"]].apply(lambda x: x/10)
+    knmi_df = knmi_df.rename(columns={"TG": "temperature_mean", "TN": "temperature_min", "TX": "temperature_max", "UG": "humidity_mean", "UX": "humidity_max", "UN": "humidity_min"})
+    knmi_df = knmi_df[
+        knmi_df.columns.intersection(
+            set(["id", "timestamp", "temperature_mean", "temperature_min", "temperature_max", "humidity_mean", "humidity_max", "humidity_min"])
+        )
+    ]
+
+    return pd.concat([df, knmi_df])
 
 mjsdf = prepare_chart_data(load_data())
+if (knmi_input):
+    mjsdf = add_knmi_data(mjsdf)
 copymjsdf = mjsdf.copy()
 
 # output plots
@@ -139,9 +176,6 @@ with st.container():
     plot = mjs_plot(chart_type, copymjsdf)
     parameters.set_url_fields()
     st.plotly_chart(plot, use_container_width=True)
-
-TEXT_LAYER_DATA = "https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/bart-stations.json"  # noqa
-extradf = pd.read_json(TEXT_LAYER_DATA)
 
 load_data.locationdf["id"] = load_data.locationdf.id.apply(str)
 
